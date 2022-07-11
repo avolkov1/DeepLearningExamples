@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG FROM_IMAGE_NAME=nvcr.io/nvidia/tensorflow:21.09-tf2-py3
+#ARG FROM_IMAGE_NAME=nvcr.io/nvidia/tensorflow:21.09-tf2-py3
+ARG FROM_IMAGE_NAME=nvcr.io/nvidia/tensorflow:22.05-tf2-py3
 FROM ${FROM_IMAGE_NAME}
 
 RUN echo ${FROM_IMAGE_NAME} 

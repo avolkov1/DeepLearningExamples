@@ -14,7 +14,7 @@
 import hashlib
 import os
 import urllib.request
-import tarfile
+import zipfile
 
 class GooglePretrainedWeightDownloader:
     def __init__(self, save_path):
@@ -25,45 +25,45 @@ class GooglePretrainedWeightDownloader:
 
         # Download urls
         self.model_urls = {
-            'bert_base_uncased': ('https://storage.googleapis.com/cloud-tpu-checkpoints/bert/keras_bert/uncased_L-12_H-768_A-12.tar.gz', 'uncased_L-12_H-768_A-12.tar.gz'),
-            'bert_large_uncased': ('https://storage.googleapis.com/cloud-tpu-checkpoints/bert/keras_bert/uncased_L-24_H-1024_A-16.tar.gz', 'uncased_L-24_H-1024_A-16.tar.gz'),
-            # 'bert_base_cased': ('https://storage.googleapis.com/cloud-tpu-checkpoints/bert/keras_bert/cased_L-12_H-768_A-12.tar.gz', 'cased_L-12_H-768_A-12.tar.gz'),
-            # 'bert_large_cased': ('https://storage.googleapis.com/cloud-tpu-checkpoints/bert/keras_bert/cased_L-24_H-1024_A-16.tar.gz', 'cased_L-24_H-1024_A-16.tar.gz'),
-            # 'bert_base_multilingual_cased': ('https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip', 'multi_cased_L-12_H-768_A-12.zip'),
-            # 'bert_large_multilingual_uncased': ('https://storage.googleapis.com/bert_models/2018_11_03/multilingual_L-12_H-768_A-12.zip', 'multilingual_L-12_H-768_A-12.zip'),
-            # 'bert_base_chinese': ('https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip', 'chinese_L-12_H-768_A-12.zip')
+            'bert_base_uncased': ('https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-12_H-768_A-12.zip', 'uncased_L-12_H-768_A-12.zip'),
+            'bert_large_uncased': ('https://storage.googleapis.com/bert_models/2018_10_18/uncased_L-24_H-1024_A-16.zip', 'uncased_L-24_H-1024_A-16.zip'),
+            'bert_base_cased': ('https://storage.googleapis.com/bert_models/2018_10_18/cased_L-12_H-768_A-12.zip', 'cased_L-12_H-768_A-12.zip'),
+            'bert_large_cased': ('https://storage.googleapis.com/bert_models/2018_10_18/cased_L-24_H-1024_A-16.zip', 'cased_L-24_H-1024_A-16.zip'),
+            'bert_base_multilingual_cased': ('https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip', 'multi_cased_L-12_H-768_A-12.zip'),
+            'bert_large_multilingual_uncased': ('https://storage.googleapis.com/bert_models/2018_11_03/multilingual_L-12_H-768_A-12.zip', 'multilingual_L-12_H-768_A-12.zip'),
+            'bert_base_chinese': ('https://storage.googleapis.com/bert_models/2018_11_03/chinese_L-12_H-768_A-12.zip', 'chinese_L-12_H-768_A-12.zip')
         }
 
         # SHA256sum verification for file download integrity (and checking for changes from the download source over time)
         self.bert_base_uncased_sha = {
             'bert_config.json': '7b4e5f53efbd058c67cda0aacfafb340113ea1b5797d9ce6ee411704ba21fcbc',
-            'bert_model.ckpt.data-00000-of-00001': 'f8d2e9873133ea4d252662be01a074fb6b9e115d5fd1e3678d385cf65cf5210f',
-            'bert_model.ckpt.index': '06a6b8cdff0e61f62f8f24946a607aa6f5ad9b969c1b85363541ab144f80c767',
-            # 'checkpoint': 'da4c827756174a576abc3490e385fa8a36600cf5eb7bbea29315cf1f4ad59639',
+            'bert_model.ckpt.data-00000-of-00001': '58580dc5e0bf0ae0d2efd51d0e8272b2f808857f0a43a88aaf7549da6d7a8a84',
+            'bert_model.ckpt.index': '04c1323086e2f1c5b7c0759d8d3e484afbb0ab45f51793daab9f647113a0117b',
+            'bert_model.ckpt.meta': 'dd5682170a10c3ea0280c2e9b9a45fee894eb62da649bbdea37b38b0ded5f60e',
             'vocab.txt': '07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3',
         }
 
         self.bert_large_uncased_sha = {
             'bert_config.json': 'bfa42236d269e2aeb3a6d30412a33d15dbe8ea597e2b01dc9518c63cc6efafcb',
-            'bert_model.ckpt.data-00000-of-00001': '9aa66efcbbbfd87fc173115c4f906a42a70d26ca4ca1e318358e4de81dbddb0b',
-            'bert_model.ckpt.index': '1811d5b68b2fd1a8c5d2961b2691eb626d75c4e789079eb1ba3649aa3fff7336',
-            # 'checkpoint': 'da4c827756174a576abc3490e385fa8a36600cf5eb7bbea29315cf1f4ad59639',
+            'bert_model.ckpt.data-00000-of-00001': 'bc6b3363e3be458c99ecf64b7f472d2b7c67534fd8f564c0556a678f90f4eea1',
+            'bert_model.ckpt.index': '68b52f2205ffc64dc627d1120cf399c1ef1cbc35ea5021d1afc889ffe2ce2093',
+            'bert_model.ckpt.meta': '6fcce8ff7628f229a885a593625e3d5ff9687542d5ef128d9beb1b0c05edc4a1',
             'vocab.txt': '07eced375cec144d27c900241f3e339478dec958f92fddbc551f295c992038a3',
         }
 
         self.bert_base_cased_sha = {
             'bert_config.json': 'f11dfb757bea16339a33e1bf327b0aade6e57fd9c29dc6b84f7ddb20682f48bc',
-            'bert_model.ckpt.data-00000-of-00001': 'ed0febc0fbcd2b7ef9f02112e00cb26c5de2086bca26c07b48b09c723446bc85',
-            'bert_model.ckpt.index': 'af085a027ef3686466c9b662f9174129401bb4bc49856c917c02322ab7ca26d5',
-            'checkpoint': 'da4c827756174a576abc3490e385fa8a36600cf5eb7bbea29315cf1f4ad59639',
+            'bert_model.ckpt.data-00000-of-00001': '734d5a1b68bf98d4e9cb6b6692725d00842a1937af73902e51776905d8f760ea',
+            'bert_model.ckpt.index': '517d6ef5c41fc2ca1f595276d6fccf5521810d57f5a74e32616151557790f7b1',
+            'bert_model.ckpt.meta': '5f8a9771ff25dadd61582abb4e3a748215a10a6b55947cbb66d0f0ba1694be98',
             'vocab.txt': 'eeaa9875b23b04b4c54ef759d03db9d1ba1554838f8fb26c5d96fa551df93d02',
         }
 
         self.bert_large_cased_sha = {
             'bert_config.json': '7adb2125c8225da495656c982fd1c5f64ba8f20ad020838571a3f8a954c2df57',
-            'bert_model.ckpt.data-00000-of-00001': '1f96efeac7c8728e2bacb8ec6230f5ed42a26f5aa6b6b0a138778c190adf2a0b',
-            'bert_model.ckpt.index': '373ed159af87775ce549239649bfc4df825bffab0da31620575dab44818443c3',
-            'checkpoint': 'da4c827756174a576abc3490e385fa8a36600cf5eb7bbea29315cf1f4ad59639',
+            'bert_model.ckpt.data-00000-of-00001': '6ff33640f40d472f7a16af0c17b1179ca9dcc0373155fb05335b6a4dd1657ef0',
+            'bert_model.ckpt.index': 'ef42a53f577fbe07381f4161b13c7cab4f4fc3b167cec6a9ae382c53d18049cf',
+            'bert_model.ckpt.meta': 'd2ddff3ed33b80091eac95171e94149736ea74eb645e575d942ec4a5e01a40a1',
             'vocab.txt': 'eeaa9875b23b04b4c54ef759d03db9d1ba1554838f8fb26c5d96fa551df93d02',
         }
 
@@ -95,11 +95,11 @@ class GooglePretrainedWeightDownloader:
         self.model_sha = {
             'bert_base_uncased': self.bert_base_uncased_sha,
             'bert_large_uncased': self.bert_large_uncased_sha,
-            # 'bert_base_cased': self.bert_base_cased_sha,
-            # 'bert_large_cased': self.bert_large_cased_sha,
-            # 'bert_base_multilingual_cased': self.bert_base_multilingual_cased_sha,
-            # 'bert_large_multilingual_uncased': self.bert_large_multilingual_uncased_sha,
-            # 'bert_base_chinese': self.bert_base_chinese_sha
+            'bert_base_cased': self.bert_base_cased_sha,
+            'bert_large_cased': self.bert_large_cased_sha,
+            'bert_base_multilingual_cased': self.bert_base_multilingual_cased_sha,
+            'bert_large_multilingual_uncased': self.bert_large_multilingual_uncased_sha,
+            'bert_base_chinese': self.bert_base_chinese_sha
         }
 
     # Helper to get sha256sum of a file
@@ -126,17 +126,18 @@ class GooglePretrainedWeightDownloader:
             handle.write(response.read())
 
           print('Unzipping', file)
-          tf = tarfile.open(file)
-          tf.extractall(self.save_path)
+          zip = zipfile.ZipFile(file, 'r')
+          zip.extractall(self.save_path)
+          zip.close()
 
           sha_dict = self.model_sha[model]
           for extracted_file in sha_dict:
             sha = sha_dict[extracted_file]
-            if sha != self.sha256sum(file[:-7] + '/' + extracted_file):
+            if sha != self.sha256sum(file[:-4] + '/' + extracted_file):
               found_mismatch_sha = True
               print('SHA256sum does not match on file:', extracted_file, 'from download url:', url)
             else:
-              print(file[:-7] + '/' + extracted_file, '\t', 'verified')
+              print(file[:-4] + '/' + extracted_file, '\t', 'verified')
 
         if not found_mismatch_sha:
           print("All downloads pass sha256sum verification.")
